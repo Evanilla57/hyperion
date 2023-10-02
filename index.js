@@ -24,6 +24,7 @@ db.query(
     }
 );
 
+// TODO: Flesh out each function
 // Initialize app with main menu prompts
 function init() {
     inquirer
@@ -72,6 +73,22 @@ function init() {
                     break;
             }
         })
+};
+
+// Allows viewing of each table
+function viewDepartments() {
+    const sql = 'SELECT * FROM department';
+  viewQuery(sql);
+};
+
+function viewRoles() {
+    const sql = 'SELECT * FROM role';
+  viewQuery(sql);
+};
+
+function viewEmployees() {
+    const sql = 'SELECT * FROM employee';
+  viewQuery(sql);
 };
 
 inquirer

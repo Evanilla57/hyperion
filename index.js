@@ -10,6 +10,10 @@ const db = mysql.createConnection({
     database: 'company_db'
 });
 
+// db.connect((err) => {
+//     if (err) throw error;
+// })
+
 // sample query
 db.query(
     'SELECT * FROM `department` WHERE `id` = 1',
@@ -79,7 +83,7 @@ inquirer
             name: 'employeeManager',
             message: 'Who is the manager of the employee?',
         },
-        //TODO: Figure out emplpoyee options
+        //TODO: Figure out emplpoyee options = = variable for choices
         //Update An Employee Role
         {
             type: 'list',

@@ -1,6 +1,23 @@
 // Packages needed for this application
 const inquirer = require('inquirer');
+const mysql = require('mysql2');
 
+// Connect to database
+const db = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: 'MaySQL!2345',
+    database: 'company_db'
+});
+
+// sample query
+db.query(
+    'SELECT * FROM `department` WHERE `id` = 1',
+    function (err, results, fields) {
+        console.log(results); // results contains rows returned by server
+        console.log(fields); // fields contains extra meta data about results, if available
+    }
+);
 
 // Array of questions for user input
 inquirer
@@ -11,8 +28,8 @@ inquirer
             message: 'What would you like to do?',
             choices: [
                 'View All Departments',
-                'View All Roles', 
-                'View All Employees', 
+                'View All Roles',
+                'View All Employees',
                 'Add A Department',
                 'Add A Role',
                 'Add An Employee',
@@ -76,9 +93,9 @@ inquirer
             message: "What is the name of the employee's new role?"
         },
     ])
-    // .then((data) => {
-    //     console.log(data);
-    //     fs.writeFile('newREADME.md', generateMarkdown(data), (err) =>
-    //         err ? console.log(err) : console.log('Success!')
-    //     );
-    // });
+// .then((data) => {
+//     console.log(data);
+//     fs.writeFile('newREADME.md', generateMarkdown(data), (err) =>
+//         err ? console.log(err) : console.log('Success!')
+//     );
+// });

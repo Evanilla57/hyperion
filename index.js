@@ -10,9 +10,10 @@ const db = mysql.createConnection({
     database: 'company_db'
 });
 
-// db.connect((err) => {
-//     if (err) throw error;
-// })
+db.connect((err) => {
+    if (err) throw err;
+    init();
+});
 
 // sample query
 db.query(
@@ -23,23 +24,58 @@ db.query(
     }
 );
 
-// Array of questions for user input
+// Initialize app with main menu prompts
+function init() {
+    inquirer
+        .prompt([
+            {
+                type: 'list',
+                name: 'mainMenu',
+                message: 'What would you like to do?',
+                choices: [
+                    'View All Departments',
+                    'View All Roles',
+                    'View All Employees',
+                    'Add A Department',
+                    'Add A Role',
+                    'Add An Employee',
+                    'Update An Employee Role',
+                    'Quit'
+                ],
+            }])
+        .then((data) => {
+            const { selection } = data;
+            switch (selection) {
+                case 'View All Departments':
+                    viewDepartments();
+                    break;
+                case 'View All Roles':
+                    viewRoles();
+                    break;
+                case 'View All Employees':
+                    viewEmployees();
+                    break;
+                case 'Add A Department':
+                    addDepartment();
+                    break;
+                case 'Add A Role':
+                    addRole();
+                    break;
+                case 'Add An Employee':
+                    addEmployee();
+                    break;
+                case 'Update An Employee Role':
+                    updateEmployee();
+                    break;
+                case 'Quit':
+                    db.end();
+                    break;
+            }
+        })
+};
+
 inquirer
     .prompt([
-        {
-            type: 'list',
-            name: 'mainMenu',
-            message: 'What would you like to do?',
-            choices: [
-                'View All Departments',
-                'View All Roles',
-                'View All Employees',
-                'Add A Department',
-                'Add A Role',
-                'Add An Employee',
-                'Update An Employee Role'
-            ],
-        },
         //Add A Department
         {
             type: 'input',

@@ -66,6 +66,15 @@ function init() {
         })
 };
 
+//Runs view query functions
+function viewQuery(sql) {
+    db.query(sql, (err, res) => {
+        if (err) throw err;
+        console.table(res);
+        init();
+    });
+}
+
 // Allows viewing of each table
 function viewDepartments() {
     const sql = 'SELECT * FROM department';
@@ -73,7 +82,7 @@ function viewDepartments() {
 };
 
 function viewRoles() {
-    const sql = 'SELECT * FROM role';
+    const sql = 'SELECT * FROM roles';
   viewQuery(sql);
 };
 

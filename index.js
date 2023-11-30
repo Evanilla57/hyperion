@@ -91,6 +91,102 @@ function viewEmployees() {
   viewQuery(sql);
 };
 
+function addEmployee() {
+    let roles = [];
+    let managers = [];
+
+    async function getManagersAndRoles() {
+        try {
+                // Query for managers.
+            const managersQuery = await new Promise((resolve, reject) => {
+                db.query(`SELECT id, CONCAT(first_name , " ", last_name) AS name 
+                FROM employee 
+                WHERE role_id IN (12, 2, 3, 14, 8, 7) 
+                ORDER BY id`, (err, res) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(res);
+                    }
+                });
+            });
+
+            managers = managersQuery.map(({ id, name }) => ({
+                name,
+                value: id,
+            }));
+
+             // Query for roles.
+            const rolesQuery = await new Promise((resolve, reject) => {
+                db.query("SELECT id, title FROM roles", (err, res) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(res);
+                    }
+                });
+            });
+
+            roles = rolesQuery.map(({ id, title }) => ({
+                name: title,
+                value: id,
+            }));
+
+            // Prompt for user input once both queries are complete.
+            promptUserInput();
+        } catch (err) {
+            console.error(err);
+        }
+    }
+    
+    // Function to prompt user input.
+    function promptUserInput() {
+        inquirer
+            .prompt([
+                {
+                    type: 'input',
+                    name: 'first',
+                    message: `What is your employee's first name.`,
+                },
+                {
+                    type: 'input',
+                    name: 'last',
+                    message: `What is your employee's last name.`,
+                },
+                {
+                    type: 'list',
+                    name: 'role',
+                    message: `What is your employee's role.`,
+                    choices: roles,
+                },
+                {
+                    type: 'list',
+                    name: 'manager',
+                    message: `Who is your employee's manager.`,
+                    choices: [
+                        { name: 'None', value: null },
+                        ...managers,
+                    ],
+                },
+            ])
+            .then((data) => {
+                const { first, last, role, manager } = data;
+                const sql = `INSERT INTO employee (first_name, last_name, role_id, manager_id)
+                VALUES (?, ?, ?, ?)`;
+                const values = [first, last, role, manager];
+                db.query(sql, values, (err) => {
+                    if (err) {
+                        console.error(err);
+                    } else {
+                        console.log(`${first} ${last} has successfully been added to the employee database.`);
+                        init();
+                    }
+                });
+            });
+    }
+    getManagersAndRoles();
+};
+
 inquirer
     .prompt([
         //Add A Department
@@ -136,7 +232,7 @@ inquirer
             name: 'employeeManager',
             message: 'Who is the manager of the employee?',
         },
-        //TODO: Figure out emplpoyee options = = variable for choices
+        //TODO: Figure out employee options = = variable for choices
         //Update An Employee Role
         {
             type: 'list',
@@ -150,9 +246,3 @@ inquirer
             message: "What is the name of the employee's new role?"
         },
     ])
-// .then((data) => {
-//     console.log(data);
-//     fs.writeFile('newREADME.md', generateMarkdown(data), (err) =>
-//         err ? console.log(err) : console.log('Success!')
-//     );
-// });

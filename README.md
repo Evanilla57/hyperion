@@ -33,16 +33,16 @@ THEN I am prompted to select an employee to update and their new role and this i
 ## Usage
 
 Video Demonstration:
-
+https://drive.google.com/file/d/1SBU34eg9ZsdtXE8U7KGOyEiOK-WPRnyN/view
 
 ## Links
-GitHub Repo Page: https://github.com/Evanilla57/the-notebook
-Deployed Website: 
+GitHub Repo Page: https://github.com/Evanilla57/hyperion
 
 ## Credits
 
-- Starter Code provided by Coding Boot Camp at UCR Extension
+- Collaborated with fellow student Robert Ambriz
 - Lessons and Activities provided by Coding Boot Camp at UCR Extension
+- askBCS support from Shane
 
 ## License
 

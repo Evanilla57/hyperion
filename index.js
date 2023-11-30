@@ -15,16 +15,7 @@ db.connect((err) => {
     init();
 });
 
-// sample query
-db.query(
-    'SELECT * FROM `department` WHERE `id` = 1',
-    function (err, results, fields) {
-        console.log(results); // results contains rows returned by server
-        console.log(fields); // fields contains extra meta data about results, if available
-    }
-);
 
-// TODO: Flesh out each function
 // Initialize app with main menu prompts
 function init() {
     inquirer
@@ -45,8 +36,8 @@ function init() {
                 ],
             }])
         .then((data) => {
-            const { selection } = data;
-            switch (selection) {
+            const { mainMenu } = data;
+            switch (mainMenu) {
                 case 'View All Departments':
                     viewDepartments();
                     break;
@@ -91,6 +82,7 @@ function viewEmployees() {
   viewQuery(sql);
 };
 
+// Allows user to add employee
 function addEmployee() {
     let roles = [];
     let managers = [];
@@ -187,62 +179,178 @@ function addEmployee() {
     getManagersAndRoles();
 };
 
-inquirer
-    .prompt([
-        //Add A Department
-        {
-            type: 'input',
-            name: 'department',
-            message: 'What is the name of the department?',
-        },
-        //Add A Role
-        {
-            type: 'input',
-            name: 'roleName',
-            message: 'What is the name of the role?',
-        },
-        {
-            type: 'input',
-            name: 'roleSalary',
-            message: 'What is the salary of the role?',
-        },
-        {
-            type: 'input',
-            name: 'roleDepartment',
-            message: 'What is the department of the role?',
-        },
-        //Add An Employee
-        {
-            type: 'input',
-            name: 'employeeFirstName',
-            message: 'What is the first name of the employee?',
-        },
-        {
-            type: 'input',
-            name: 'employeeLastName',
-            message: 'What is the last name of the employee?',
-        },
-        {
-            type: 'input',
-            name: 'employeeRole',
-            message: 'What is the role of the employee?',
-        },
-        {
-            type: 'input',
-            name: 'employeeManager',
-            message: 'Who is the manager of the employee?',
-        },
-        //TODO: Figure out employee options = = variable for choices
-        //Update An Employee Role
-        {
-            type: 'list',
-            name: 'employeeOptions',
-            message: 'What is the name of the employee whose role needs to be updated?',
-            choices: ['']
-        },
-        {
-            type: 'input',
-            name: 'employeeRoleNew',
-            message: "What is the name of the employee's new role?"
-        },
-    ])
+//Function to allow user to add a role
+function addRole() {
+    let departments = [];
+    async function getDepartment() {
+        try {
+        //query for departments.
+        const departmentsQuery = await new Promise((resolve, reject) => {
+        db.query('SELECT id, dept_name FROM department', (err, res) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(res);
+            }
+        })
+        });
+
+        departments = departmentsQuery.map(({ id, dept_name }) => ({
+            name: dept_name,
+            value: id,
+        }));
+        promptUserInput();
+    }
+        catch (err){
+            console.error(err);
+        }
+    }
+    function promptUserInput() {
+        inquirer
+            .prompt([
+                {
+                    type: 'input',
+                    name: 'title',
+                    message: 'What is the title of this new role?'
+                },
+                {
+                    type: 'number',
+                    name: 'salary',
+                    message: 'Select a salary range between 50,000.00 and 200,000.00 for this role.',
+                    validate: async (number) => {
+                        if (number <= 200000 && number >= 50000) {
+                            return true;
+                            
+                        } else {
+                            console.log('Salary must be between 50,000 and 200,000!');
+                            return false;
+                        }
+                    }
+                },
+                {
+                    type: 'list',
+                    name: 'department',
+                    message: 'Which department does this role belong to?',
+                    choices: departments
+                }
+            ])
+            .then( async (data)=> {
+                const {title, salary, department} = data;
+                //retrieves dept name by id.
+                const dept = departments.find(d => d.value === department).name;
+
+                const sql = `INSERT INTO roles (title, salary, department_id)
+                VALUES (?, ?, ?)`;
+                const values = [title, salary, department];
+                db.query(sql, values, (err, res) => {
+                    if (err) {
+                        console.error(err);
+                    } else {
+                        console.log(`${title} successfully added to ${dept} .`);
+                        init();
+                    }
+                })
+            })
+    }
+    getDepartment();
+};
+
+//Allows user to add department
+function addDepartment() {
+    inquirer
+        .prompt([
+            {
+                type: 'input',
+                name: 'department',
+                message: 'What is the name of this new department?'
+            }
+        ])
+        .then((data)=>{
+            const {department} = data;
+            const sql = `INSERT INTO department(dept_name)
+                VALUES (?)`;
+            db.query(sql, department, (err, res)=> {
+                if (err) {
+                    console.error(err);
+                } else {
+                    console.log(`${department} successfully added.`);
+                    init();
+                }
+            })
+        })
+};
+
+//Allows user to update employer role
+function updateEmployee() {
+    let employee = [];
+    const sqlE = `SELECT id, CONCAT(first_name, ' ', last_name) AS emp_name FROM employee`;
+    const sqlR = `SELECT id, title FROM roles`;
+    async function getEmployeeAndRole() {
+        try {
+            const employeeQuery = await new Promise((resolve, reject) => {
+                db.query(sqlE, (err, res) =>{
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(res);
+                    }
+                } )
+            })
+            employee = employeeQuery.map(({id, emp_name})=> ({
+                name: emp_name,
+                value: id
+            }))
+            const rolesQuery = await new Promise((resolve, reject) => {
+                db.query(sqlR, (err, res) =>{
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(res);
+                    }
+                })
+            })
+            role = rolesQuery.map(({id,title})=> ({
+                name: title,
+                value: id
+            }))
+            promptUserInput();
+        } catch (err) {
+            console.error(err);
+        }
+    }
+    function promptUserInput() {
+        inquirer
+            .prompt([
+                {
+                    type:'list',
+                    name: 'employeeID',
+                    message: `Select an employee with a role that you would like to update.`,
+                    choices: employee
+                },
+                {
+                    type: 'list',
+                    name: 'roleID',
+                    message: `Select a new role for this employee`,
+                    choices: role
+                }
+            ])
+            .then( async (data)=> {
+                const {employeeID, roleID} = data;
+
+                //retreives the emloyee's name and new role using IDs.
+                const empName = employee.find(emp => emp.value === employeeID).name;
+                const roleTitle = role.find(rl => rl.value === roleID).name;
+
+                const sql =`UPDATE employee SET role_id = ${roleID} WHERE id = ${employeeID}`;
+                db.query(sql, (err, res)=> {
+                    if (err) {
+                        console.error(err);
+                    } else {
+                        console.log(`${empName}'s role was updated to ${roleTitle}.`);
+                        init();
+                    }
+                })
+            });
+    };
+    getEmployeeAndRole();
+};
